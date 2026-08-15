@@ -12,6 +12,12 @@ const nextConfig: NextConfig = {
   // 서버 없이 정적 파일만으로 동작하도록 out/ 폴더에 내보낸다.
   output: "export",
   basePath,
+  /*
+   * 각 페이지를 games/foo/index.html 로 내보낸다.
+   * 이렇게 해야 GitHub Pages 가 끝에 슬래시가 붙은 주소도 열어 준다.
+   * 링크를 복사하며 슬래시가 붙거나, 검색엔진이 붙여 접근해도 404 가 나지 않는다.
+   */
+  trailingSlash: true,
   images: {
     // 정적 내보내기에서는 Next의 이미지 최적화 서버를 쓸 수 없다.
     unoptimized: true,

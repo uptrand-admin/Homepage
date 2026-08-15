@@ -18,3 +18,17 @@ export function asset(src: string | null): string | null {
   if (!src.startsWith("/")) return src;
   return `${BASE}${src}`;
 }
+
+/**
+ * 주소창에 직접 써 넣는 사이트 내부 경로.
+ *
+ * <Link> 는 Next 가 알아서 배포 경로를 붙이지만, history.replaceState 처럼
+ * 직접 주소를 바꿀 때는 붙지 않는다. 그대로 두면 GitHub Pages 에서
+ * 저장소 이름이 빠진 주소가 되어, 새로고침하거나 링크를 복사하면 404 가 난다.
+ *
+ * trailingSlash 설정에 맞춰 끝에 슬래시를 붙여 둔다.
+ */
+export function route(path: string): string {
+  const withSlash = path.endsWith("/") ? path : `${path}/`;
+  return `${BASE}${withSlash}`;
+}

@@ -15,7 +15,7 @@ import {
   SectionTitle,
 } from "@/components/ui";
 import { games, statusLabels, type Game } from "@/data/content";
-import { asset } from "@/lib/asset";
+import { asset, route } from "@/lib/asset";
 
 const FILTERS = [
   { label: "전체", value: "all" },
@@ -40,8 +40,8 @@ export function GamesSection() {
   /* 모달을 열면 주소도 함께 바꿔, 그 상태로 공유하거나 새로고침할 수 있게 한다. */
   useEffect(() => {
     if (!openSlug) return;
-    window.history.replaceState(null, "", `/games/${openSlug}`);
-    return () => window.history.replaceState(null, "", "/");
+    window.history.replaceState(null, "", route(`/games/${openSlug}`));
+    return () => window.history.replaceState(null, "", route("/"));
   }, [openSlug]);
 
   return (
