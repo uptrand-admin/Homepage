@@ -91,11 +91,11 @@ console.log(`[content] 시트 ${SHEET_ID} 에서 내용을 읽습니다.`);
 
 /* 한 탭이 잘못돼도 멈추지 않고 전부 본다. 고치고 다시 돌리기를 반복하지 않도록. */
 const loaded = await loadAllTabs(SHEET_ID, TABS);
-const broken = loaded.filter((r) => r.problems.length > 0);
+const broken = loaded.filter((r) => r.errors.length > 0);
 
 if (broken.length) {
   const lines = broken.map(
-    (r) => `[${r.tab.name}]\n` + r.problems.map((p) => "  · " + p).join("\n"),
+    (r) => `[${r.tab.name}]\n` + r.errors.map((p) => "  · " + p).join("\n"),
   );
   stop(
     `탭 ${broken.length}개에 문제가 있습니다.\n\n` +
@@ -106,8 +106,9 @@ if (broken.length) {
   );
 }
 
-for (const { tab, table } of loaded) {
+for (const { tab, table, notes } of loaded) {
   console.log(`[content] ${tab.name} — ${Math.max(0, table.length - 1)}줄`);
+  for (const n of notes) console.log(`[content]   알림: ${n}`);
 }
 
 const tables = Object.fromEntries(loaded.map(({ tab, table }) => [tab.name, table]));

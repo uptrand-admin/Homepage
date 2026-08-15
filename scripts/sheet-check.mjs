@@ -37,19 +37,27 @@ const width = Math.max(...TABS.map((t) => [...t.name].length)) + 2;
 console.log("  " + "탭".padEnd(width) + "줄 수".padStart(6) + "   상태");
 console.log("  " + "─".repeat(width + 20));
 
-for (const { tab, table, problems } of loaded) {
+for (const { tab, table, errors, notes } of loaded) {
   const rows = table ? Math.max(0, table.length - 1) : 0;
-  const mark = problems.length === 0 ? "정상" : "문제 " + problems.length + "건";
+  const mark = errors.length ? "문제 " + errors.length + "건" : notes.length ? "알림" : "정상";
   console.log("  " + tab.name.padEnd(width) + String(rows).padStart(6) + "   " + mark);
 }
 
-const broken = loaded.filter((r) => r.problems.length > 0);
+const noted = loaded.filter((r) => r.errors.length === 0 && r.notes.length > 0);
+if (noted.length) {
+  console.log("\n알림 (배포는 됩니다)");
+  for (const { tab, notes } of noted) {
+    for (const n of notes) console.log(`  · [${tab.name}] ${n}`);
+  }
+}
+
+const broken = loaded.filter((r) => r.errors.length > 0);
 
 if (broken.length) {
   console.log("\n" + "─".repeat(52));
-  for (const { tab, problems } of broken) {
+  for (const { tab, errors } of broken) {
     console.log(`\n[${tab.name}]`);
-    for (const p of problems) console.log("  · " + p);
+    for (const p of errors) console.log("  · " + p);
   }
   console.log(
     "\n" +

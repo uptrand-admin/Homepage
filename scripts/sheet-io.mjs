@@ -64,37 +64,51 @@ export async function loadTab(sheetId, tabName) {
 }
 
 /**
- * 탭 하나의 모양을 본다. 고칠 곳을 알려주는 문장 배열을 돌려주고, 비어 있으면 정상이다.
+ * 탭 하나의 모양을 본다. { level, message } 목록을 돌려주고, 비어 있으면 정상이다.
+ *
+ * level "error" 는 그대로 배포하면 내용이 깨지는 경우라 배포를 멈춘다.
+ * level "note" 는 알려만 주고 넘어간다. 저장소에 있던 기존 값이 그대로 쓰인다.
  */
 export function inspectTab(tab, table) {
-  const problems = [];
+  const found = [];
+  const error = (message) => found.push({ level: "error", message });
+  const note = (message) => found.push({ level: "note", message });
 
   if (!table || table.length === 0) {
-    problems.push("탭이 비어 있습니다.");
-    return problems;
+    error("탭이 비어 있습니다.");
+    return found;
   }
 
   if (tab.kind === "rows") {
     const header = table[0].map((h) => h.trim());
     const missing = tab.header.filter((h) => !header.includes(h));
 
+    // 열이 없으면 값이 엉뚱한 칸에서 읽히므로 그냥 두면 안 된다.
     if (missing.length) {
-      problems.push(`머리글에 없는 열: ${missing.join(", ")}`);
-      problems.push(`현재 첫 줄: ${header.map((h) => h.slice(0, 20)).join(" | ")}`);
+      error(`머리글에 없는 열: ${missing.join(", ")}`);
+      error(`현재 첫 줄: ${header.map((h) => h.slice(0, 20)).join(" | ")}`);
     }
 
-    if (table.length === 1) problems.push("내용이 한 줄도 없습니다. 머리글만 있습니다.");
+    if (table.length === 1) error("내용이 한 줄도 없습니다. 머리글만 있습니다.");
 
     // 머리글보다 칸이 많은 줄은 쉼표가 섞여 열이 밀린 경우다.
     const wide = table.slice(1).filter((r) => r.length > tab.header.length).length;
-    if (wide) problems.push(`칸 수가 머리글보다 많은 줄이 ${wide}개 있습니다.`);
+    if (wide) error(`칸 수가 머리글보다 많은 줄이 ${wide}개 있습니다.`);
   } else {
+    /*
+     * 항목 하나가 없다고 배포를 막지는 않는다.
+     * 읽기는 저장소의 content.json 에서 출발하므로, 없는 항목은 이전 값이 남는다.
+     * 새 항목을 추가한 직후처럼 시트가 아직 따라오지 못한 상황에서
+     * 사이트 전체가 멈추는 편이 훨씬 나쁘다.
+     */
     const labels = new Set(table.slice(1).map((r) => String(r[0]).trim()));
     const missing = tab.fields.map(([label]) => label).filter((label) => !labels.has(label));
-    if (missing.length) problems.push(`빠진 항목: ${missing.join(", ")}`);
+    if (missing.length) {
+      note(`시트에 없는 항목: ${missing.join(", ")} (저장소에 있던 값을 그대로 씁니다)`);
+    }
   }
 
-  return problems;
+  return found;
 }
 
 /**
@@ -107,12 +121,19 @@ export async function loadAllTabs(sheetId, tabs) {
   for (const tab of tabs) {
     try {
       const table = await loadTab(sheetId, tab.name);
-      results.push({ tab, table, problems: inspectTab(tab, table) });
+      const found = inspectTab(tab, table);
+      results.push({
+        tab,
+        table,
+        errors: found.filter((f) => f.level === "error").map((f) => f.message),
+        notes: found.filter((f) => f.level === "note").map((f) => f.message),
+      });
     } catch (error) {
       results.push({
         tab,
         table: null,
-        problems: [error instanceof Error ? error.message : String(error)],
+        errors: [error instanceof Error ? error.message : String(error)],
+        notes: [],
       });
     }
   }
