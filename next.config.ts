@@ -28,6 +28,11 @@ const nextConfig: NextConfig = {
      * 그래서 브라우저에서도 이 값을 알아야 하고, src/lib/asset.ts 가 직접 붙인다.
      */
     NEXT_PUBLIC_BASE_PATH: basePath,
+    /**
+     * 카카오톡 같은 공유 미리보기 크롤러는 상대 경로를 읽지 못한다.
+     * 배포 주소를 알아야 og:image 를 절대 주소로 적을 수 있어 워크플로가 넣어 준다.
+     */
+    NEXT_PUBLIC_SITE_URL: process.env.SITE_URL ?? "",
   },
 };
 

@@ -4,25 +4,26 @@
     "fullName": "UPTRAND STUDIO",
     "tagline": "University Game Development Studio.",
     "url": "https://uptrand.example.com",
+    "shareImage": "",
     "heroTitle1": "새로운 [트렌드]를",
     "heroTitle2": "업데이트해라!",
     "heroBody": "기획, 아트, 프로그래밍 각 분야의 열정적인 크리에이터들이 모여 인디 게임을 완성해 나가는 대학 연합 게임 개발 동아리 UPTRAND 입니다."
   },
   "nav": [
     {
-      "href": "#games",
+      "href": "/#games",
       "label": "GAMES"
     },
     {
-      "href": "#about",
+      "href": "/#about",
       "label": "ABOUT"
     },
     {
-      "href": "#timeline",
+      "href": "/#timeline",
       "label": "TIMELINE"
     },
     {
-      "href": "#benefits",
+      "href": "/#benefits",
       "label": "BENEFITS"
     }
   ],
@@ -156,7 +157,7 @@
         "Visual Novel",
         "Tool Dev"
       ],
-      "thumb": null,
+      "thumb": "/images/AlcoholFree_Thumbnail.png",
       "video": "",
       "gallery": [
         {

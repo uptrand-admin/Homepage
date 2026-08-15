@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { site } from "@/data/content";
+import { absoluteUrl } from "@/lib/asset";
 import "./globals.css";
 
 /** 본문 국문 서체. CDN 대신 저장소에 넣어 직접 서빙한다. */
@@ -25,6 +26,9 @@ const montserrat = Montserrat({
   display: "swap",
 });
 
+/** 시트에 공유 이미지를 지정하지 않았으면 로고를 쓴다. */
+const shareImage = absoluteUrl(site.shareImage || "/images/logo.png");
+
 export const metadata: Metadata = {
   title: {
     template: `%s | ${site.name}`,
@@ -37,6 +41,7 @@ export const metadata: Metadata = {
     siteName: site.fullName,
     locale: "ko_KR",
     type: "website",
+    images: shareImage ? [shareImage] : undefined,
   },
 };
 

@@ -41,12 +41,20 @@ jobs:
           # 비어 있으면 저장소에 있는 content.json 으로 빌드된다.
           SHEET_ID: ${{ vars.SHEET_ID }}
         # username.github.io 저장소가 아니면 /저장소이름 을 base path로 붙인다.
+        # SITE_URL 은 카톡 공유 미리보기용 절대 주소를 만드는 데 쓴다.
+        # 자체 도메인을 쓴다면 저장소 Variables 에 SITE_URL 을 등록하면 그 값이 우선한다.
         run: |
           if [ "${{ github.event.repository.name }}" = "${{ github.repository_owner }}.github.io" ]; then
-            BASE_PATH="" npm run build
+            BASE_PATH=""
           else
-            BASE_PATH="/${{ github.event.repository.name }}" npm run build
+            BASE_PATH="/${{ github.event.repository.name }}"
           fi
+          SITE_URL="${{ vars.SITE_URL }}"
+          if [ -z "$SITE_URL" ]; then
+            SITE_URL="https://${{ github.repository_owner }}.github.io${BASE_PATH}"
+          fi
+          echo "BASE_PATH=$BASE_PATH / SITE_URL=$SITE_URL"
+          BASE_PATH="$BASE_PATH" SITE_URL="$SITE_URL" npm run build
 
       - name: Disable Jekyll processing
         run: touch out/.nojekyll

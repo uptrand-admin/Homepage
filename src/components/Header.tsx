@@ -42,20 +42,20 @@ export function Header() {
 
         <nav className="hidden items-center gap-10 md:flex">
           {nav.map((item) => (
-            <a
+            <Link
               key={item.href}
               href={item.href}
               className="font-display text-base font-bold text-title transition-colors hover:text-orange"
             >
               {item.label}
-            </a>
+            </Link>
           ))}
-          <a
-            href="#join"
+          <Link
+            href="/#join"
             className="rounded-lg bg-orange px-5 py-1.5 font-display text-base font-bold text-white transition-colors hover:bg-orange-dark"
           >
             JOIN
-          </a>
+          </Link>
         </nav>
 
         <button
@@ -83,22 +83,22 @@ export function Header() {
       {open ? (
         <nav className="border-t border-line bg-white/95 px-5 py-3 backdrop-blur-xl md:hidden">
           {nav.map((item) => (
-            <a
+            <Link
               key={item.href}
               href={item.href}
               onClick={() => setOpen(false)}
               className="block border-b border-line/70 py-3.5 font-display font-bold text-title"
             >
               {item.label}
-            </a>
+            </Link>
           ))}
-          <a
-            href="#join"
+          <Link
+            href="/#join"
             onClick={() => setOpen(false)}
             className="mt-4 flex justify-center rounded-lg bg-orange px-5 py-3 font-display font-bold text-white"
           >
             JOIN
-          </a>
+          </Link>
         </nav>
       ) : null}
     </header>

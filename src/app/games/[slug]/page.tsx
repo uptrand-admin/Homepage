@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { GameDetail } from "@/components/GameDetail";
 import { games, getGame, statusLabels } from "@/data/content";
+import { absoluteUrl } from "@/lib/asset";
 
 export function generateStaticParams() {
   return games.map((game) => ({ slug: game.slug }));
@@ -17,6 +18,9 @@ export async function generateMetadata({
   const game = getGame(slug);
   if (!game) return {};
 
+  // 카톡·검색엔진 크롤러는 상대 경로를 못 읽어서 반드시 절대 주소여야 한다.
+  const image = absoluteUrl(game.thumb);
+
   return {
     title: game.title,
     description: game.tagline,
@@ -24,7 +28,7 @@ export async function generateMetadata({
       title: game.title,
       description: game.tagline,
       type: "article",
-      images: game.thumb ? [game.thumb] : undefined,
+      images: image ? [image] : undefined,
     },
   };
 }

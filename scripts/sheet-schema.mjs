@@ -112,6 +112,7 @@ export const TABS = [
       ["정식 명칭", "site.fullName", "푸터 저작권 표기"],
       ["푸터 한 줄 소개", "site.tagline", ""],
       ["사이트 주소", "site.url", "https:// 로 시작하는 배포 주소"],
+      ["공유 이미지", "site.shareImage", "카톡 등에 링크를 붙였을 때 뜨는 그림. 비우면 로고를 씁니다"],
       ["히어로 제목 1줄", "site.heroTitle1", "[대괄호]로 감싼 부분이 주황색이 됩니다. 예: 새로운 [트렌드]를"],
       ["히어로 제목 2줄", "site.heroTitle2", ""],
       ["히어로 본문", "site.heroBody", ""],

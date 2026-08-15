@@ -20,6 +20,27 @@ export function asset(src: string | null): string | null {
 }
 
 /**
+ * 공유 미리보기(카카오톡, 검색엔진)에 넣을 절대 주소.
+ *
+ * 크롤러는 페이지를 자기 서버에서 열기 때문에 /images/... 같은 상대 경로를 읽지 못한다.
+ * metadataBase 에 기대면 배포 경로가 빠지므로(맨 앞 슬래시가 경로를 뿌리로 되돌린다)
+ * 여기서 전체 주소를 직접 만든다.
+ *
+ * 배포 주소를 모르면 undefined 를 돌려준다. 깨진 주소를 넣느니 빼는 편이 낫다.
+ */
+export function absoluteUrl(path: string | null | undefined): string | undefined {
+  if (!path) return undefined;
+  if (/^https?:\/\//.test(path)) return path;
+
+  // SITE_URL 은 배포 경로까지 포함한 주소다(예: https://x.github.io/Homepage).
+  // 그러므로 여기서 asset() 을 또 거치면 경로가 두 번 붙는다.
+  const base = (process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/+$/, "");
+  if (!base) return undefined;
+
+  return base + (path.startsWith("/") ? path : `/${path}`);
+}
+
+/**
  * 주소창에 직접 써 넣는 사이트 내부 경로.
  *
  * <Link> 는 Next 가 알아서 배포 경로를 붙이지만, history.replaceState 처럼
