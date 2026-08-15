@@ -12,13 +12,43 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { TABS, fromCsv, tablesToContent } from "./sheet-schema.mjs";
 
-const SHEET_ID = process.env.SHEET_ID?.trim();
 const SOURCE = "src/data/content.json";
+
+/**
+ * SHEET_ID 에는 ID 만 넣는 것이 원칙이지만, 주소창의 주소를 통째로 붙여 넣기 쉽다.
+ * 주소가 들어와도 ID 를 뽑아 쓰고, 그래도 못 알아보면 무엇을 넣어야 하는지 알려준다.
+ */
+function readSheetId(raw) {
+  const value = raw?.trim();
+  if (!value) return null;
+
+  const fromUrl = value.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+  if (fromUrl) return fromUrl[1];
+
+  if (/^[a-zA-Z0-9-_]+$/.test(value)) return value;
+
+  throw new Error(
+    `SHEET_ID 값을 알아볼 수 없습니다: "${value}"\n` +
+      "  시트 주소 전체 또는 그 안의 ID 만 넣어 주세요.\n" +
+      "  예) https://docs.google.com/spreadsheets/d/1AbCdEf.../edit\n" +
+      "      또는 1AbCdEf...",
+  );
+}
+
+let SHEET_ID;
+try {
+  SHEET_ID = readSheetId(process.env.SHEET_ID);
+} catch (error) {
+  console.error("\n" + (error instanceof Error ? error.message : String(error)) + "\n");
+  process.exit(1);
+}
 
 if (!SHEET_ID) {
   console.log("[content] SHEET_ID 가 없어 저장소의 content.json 을 그대로 씁니다.");
   process.exit(0);
 }
+
+console.log(`[content] 시트 ${SHEET_ID} 에서 내용을 읽습니다.`);
 
 function url(tabName) {
   // SHEET_ENDPOINT 는 시험용으로 다른 주소를 가리키게 할 때만 쓴다.
