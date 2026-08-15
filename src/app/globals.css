@@ -1,26 +1,134 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-base: #f8fafc;
+  --color-surface: #ffffff;
+  --color-title: #0f172a;
+  --color-body: #475569;
+  --color-line: #e2e8f0;
+  --color-line-strong: #cbd5e1;
+  --color-subtle: #f1f5f9;
+
+  --color-orange: #ff5722;
+  --color-orange-dark: #f4511e;
+  --color-blue: #3b82f6;
+  --color-blue-tint: #eff6ff;
+  --color-orange-tint: #fff7ed;
+
+  --font-sans: var(--font-pretendard), "Apple SD Gothic Neo", system-ui, sans-serif;
+  --font-display: var(--font-montserrat), var(--font-pretendard), sans-serif;
+
+  --shadow-card: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+  --shadow-lift: 0 10px 15px -3px rgb(0 0 0 / 0.05);
+  --shadow-hover: 0 20px 25px -5px rgb(0 0 0 / 0.1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 90px;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  body {
+    background-color: var(--color-base);
+    color: var(--color-body);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background-color: var(--color-orange);
+    color: white;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-blue);
+    outline-offset: 2px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* 은은한 기술 격자 배경. 페이지 전체에 고정된다. */
+@utility bg-grid {
+  background-image:
+    linear-gradient(rgb(0 0 0 / 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(0 0 0 / 0.03) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+@utility break-keep-ko {
+  word-break: keep-all;
+}
+
+@keyframes float-rocket {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(3deg);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility animate-float {
+  animation: float-rocket 5s ease-in-out infinite;
+}
+
+@utility animate-fade-up {
+  animation: fade-up 0.8s ease-out both;
+}
+
+@utility animate-modal {
+  animation: modal-in 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* 스크롤 진입 시 나타나는 요소. 자바스크립트가 is-visible 을 붙인다. */
+@layer components {
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition:
+      opacity 0.8s ease,
+      transform 0.8s ease;
+  }
+
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+  }
 }

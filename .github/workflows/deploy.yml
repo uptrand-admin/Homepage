@@ -1,0 +1,66 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [master, main]
+  # Actions 탭의 "Run workflow" 버튼. 시트를 고친 뒤 이걸 누르면 사이트가 갱신된다.
+  workflow_dispatch:
+  # 구글 시트의 "사이트 업데이트" 메뉴가 보내는 신호.
+  repository_dispatch:
+    types: [update-content]
+  # 버튼 누르는 것을 잊어도 하루 두 번은 시트 내용을 따라가도록.
+  schedule:
+    - cron: "0 0,12 * * *"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 배포가 겹칠 때 가장 마지막 것만 반영한다.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build static site
+        env:
+          # 저장소 Settings > Secrets and variables > Actions > Variables 에 등록.
+          # 비어 있으면 저장소에 있는 content.json 으로 빌드된다.
+          SHEET_ID: ${{ vars.SHEET_ID }}
+        # username.github.io 저장소가 아니면 /저장소이름 을 base path로 붙인다.
+        run: |
+          if [ "${{ github.event.repository.name }}" = "${{ github.repository_owner }}.github.io" ]; then
+            BASE_PATH="" npm run build
+          else
+            BASE_PATH="/${{ github.event.repository.name }}" npm run build
+          fi
+
+      - name: Disable Jekyll processing
+        run: touch out/.nojekyll
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
