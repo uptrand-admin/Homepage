@@ -10,6 +10,7 @@
     "start": "next start",
     "lint": "eslint",
     "content": "node scripts/fetch-sheet.mjs",
+    "sheet:check": "node scripts/sheet-check.mjs",
     "sheet:template": "node scripts/sheet-template.mjs"
   },
   "dependencies": {

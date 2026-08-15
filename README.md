@@ -26,7 +26,9 @@ src/
 └─ lib/asset.ts           public/ 이미지 경로에 배포 경로를 붙임
 scripts/
 ├─ sheet-schema.mjs       시트 탭·열 정의 (양식 생성과 읽기 공용)
+├─ sheet-io.mjs           시트 읽기와 탭 모양 검사 (배포·점검 공용)
 ├─ fetch-sheet.mjs        시트 → content.json (검증 포함)
+├─ sheet-check.mjs        시트 상태 점검 (읽기 전용)
 ├─ sheet-template.mjs     content.json → 시트 양식 CSV (왕복 검증 포함)
 └─ flatten-prefetch.mjs   Next.js 정적 내보내기 버그 우회
 sheet-template/           구글 시트로 가져올 CSV 9개
@@ -47,6 +49,7 @@ npm run dev
 | --- | --- |
 | `npm run dev` | 개발 서버 (http://localhost:3000) |
 | `npm run build` | 정적 사이트를 `out/` 에 생성 |
+| `npm run sheet:check` | 시트가 배포 가능한 상태인지 점검 (읽기만 함) |
 | `npm run content` | 구글 시트를 읽어 `content.json` 갱신 (`SHEET_ID` 필요) |
 | `npm run sheet:template` | 현재 내용으로 시트 양식 CSV 재생성 |
 
