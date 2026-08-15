@@ -32,7 +32,13 @@ function tabUrl(sheetId, tabName) {
   const base =
     process.env.SHEET_ENDPOINT ??
     `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/gviz/tq?tqx=out:csv`;
-  return `${base}&sheet=${encodeURIComponent(tabName)}`;
+
+  /*
+   * headers=1 은 반드시 붙여야 한다. 빼면 구글이 머리글이 몇 행인지 스스로 추측하는데,
+   * 첫 행들이 모두 문자열이면 여러 행을 머리글로 보고 공백으로 이어 붙여 한 행으로 만든다.
+   * 그러면 멀쩡한 시트가 "머리글이 깨진" 것처럼 보인다.
+   */
+  return `${base}&headers=1&sheet=${encodeURIComponent(tabName)}`;
 }
 
 export async function loadTab(sheetId, tabName) {
@@ -59,9 +65,6 @@ export async function loadTab(sheetId, tabName) {
 
 /**
  * 탭 하나의 모양을 본다. 고칠 곳을 알려주는 문장 배열을 돌려주고, 비어 있으면 정상이다.
- *
- * CSV 를 붙여넣기로 옮기면 칸 안의 줄바꿈 때문에 여러 행이 한 칸에 뭉치는 일이 잦다.
- * 그러면 머리글 칸에 값까지 딸려 들어가므로, 그 흔적을 따로 짚어 준다.
  */
 export function inspectTab(tab, table) {
   const problems = [];
@@ -77,17 +80,7 @@ export function inspectTab(tab, table) {
 
     if (missing.length) {
       problems.push(`머리글에 없는 열: ${missing.join(", ")}`);
-
-      // 머리글 칸이 여러 줄이거나 지나치게 길면 값이 뭉쳐 들어간 것이다.
-      const merged = header.filter((h) => h.includes("\n") || h.length > 30);
-      if (merged.length) {
-        problems.push(
-          "머리글 칸에 값이 함께 들어가 있습니다. 붙여넣기 대신 " +
-            "파일 → 가져오기 → 현재 시트 바꾸기 로 다시 넣어 주세요.",
-        );
-      } else {
-        problems.push(`현재 첫 줄: ${header.join(" | ")}`);
-      }
+      problems.push(`현재 첫 줄: ${header.map((h) => h.slice(0, 20)).join(" | ")}`);
     }
 
     if (table.length === 1) problems.push("내용이 한 줄도 없습니다. 머리글만 있습니다.");
