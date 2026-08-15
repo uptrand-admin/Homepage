@@ -6,30 +6,6 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 3000
-    },
-    {
-      "name": "mock-preview",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": [
-        "--yes",
-        "serve",
-        "-l",
-        "4100",
-        "C:\\Users\\유현수\\AppData\\Local\\Temp\\claude\\D--Storage-Project-Web-UPTRAND-WebPage\\0cf42fe0-0ffa-455d-92f9-9592aacdc3b9\\scratchpad\\mockprev"
-      ],
-      "port": 4100
-    },
-    {
-      "name": "ghpages-preview",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": [
-        "--yes",
-        "serve",
-        "-l",
-        "4200",
-        "C:\\Users\\유현수\\AppData\\Local\\Temp\\claude\\D--Storage-Project-Web-UPTRAND-WebPage\\0cf42fe0-0ffa-455d-92f9-9592aacdc3b9\\scratchpad\\ghpages"
-      ],
-      "port": 4200
     }
   ]
 }
