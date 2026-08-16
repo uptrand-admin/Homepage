@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { GameDetail } from "@/components/GameDetail";
+import { Icon } from "@/components/Icon";
 import {
   FilterTabs,
   Modal,
@@ -138,7 +139,7 @@ function GameCard({ game, onOpen }: { game: Game; onOpen: () => void }) {
         <p className="mt-2 flex-1 text-sm leading-relaxed text-body break-keep-ko">
           {game.tagline}
         </p>
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-4 flex flex-wrap items-center gap-2">
           {game.tags.map((tag) => (
             <span
               key={tag}
@@ -147,6 +148,16 @@ function GameCard({ game, onOpen }: { game: Game; onOpen: () => void }) {
               {tag}
             </span>
           ))}
+          {/* 수상 이력이 있으면 목록에서도 바로 눈에 띄게 한다. */}
+          {game.awards.length > 0 ? (
+            <span
+              className="inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-extrabold text-amber-800"
+              title={game.awards.join("\n")}
+            >
+              <Icon name="trophy" className="size-3" />
+              {game.awards.length > 1 ? game.awards.length : "수상"}
+            </span>
+          ) : null}
         </div>
         <span className="mt-4 text-sm font-extrabold text-blue opacity-0 transition-opacity group-hover:opacity-100">
           VIEW DETAILS ↗

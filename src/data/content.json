@@ -146,7 +146,9 @@
         }
       ],
       "detailPage": "",
-      "award": "TU Game Challenge 2025 최우수상"
+      "awards": [
+        "TU Game Challenge 2025 최우수상"
+      ]
     },
     {
       "slug": "alcohol-free",
@@ -193,7 +195,9 @@
         }
       ],
       "detailPage": "",
-      "award": "G-Star 2025 인디 쇼케이스 전시"
+      "awards": [
+        "G-Star 2025 인디 쇼케이스 전시"
+      ]
     },
     {
       "slug": "rgb-line",
@@ -230,7 +234,9 @@
         }
       ],
       "detailPage": "",
-      "award": "TU Game Challenge 2025 장려상"
+      "awards": [
+        "TU Game Challenge 2025 장려상"
+      ]
     },
     {
       "slug": "cross-wordle",
@@ -267,7 +273,11 @@
         }
       ],
       "detailPage": "",
-      "award": "IEEE Busan Section Award"
+      "awards": [
+        "TU Game Challenge 2025 최우수상",
+        "IEEE Busan Section Award",
+        "G-Star 2025 인디 쇼케이스 전시"
+      ]
     },
     {
       "slug": "powpow-witch",
@@ -305,7 +315,7 @@
         }
       ],
       "detailPage": "",
-      "award": ""
+      "awards": []
     }
   ],
   "albums": [

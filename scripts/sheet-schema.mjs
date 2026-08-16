@@ -202,7 +202,7 @@ export const TABS = [
   {
     name: "게임",
     kind: "rows",
-    note: "스크린샷과 링크는 한 칸 안에서 줄바꿈(Alt+Enter)으로 여러 줄 적으세요",
+    note: "스크린샷·링크·성과는 한 칸 안에서 줄바꿈(Alt+Enter)으로 여러 줄 적으세요",
     header: [
       "주소이름", "제목", "한 줄 소개", "상태", "태그", "썸네일", "플레이 영상",
       "스크린샷", "개발 기간", "참여 인원", "개발 도구", "본문", "링크", "상세 페이지", "성과",
@@ -226,7 +226,7 @@ export const TABS = [
           return { label, href: href === "" ? "#" : href, kind: kind || "play" };
         }),
         detailPage: text(r[13]),
-        award: text(r[14]),
+        awards: lines(r[14]),
       }));
     },
     write: (content) =>
@@ -235,7 +235,7 @@ export const TABS = [
         csvListOut(g.tags), g.thumb ?? "", g.video, mediaOut(g.gallery),
         g.period, g.team, csvListOut(g.tools), linesOut(g.body),
         linesOut((g.links ?? []).map((l) => `${l.label} | ${l.href} | ${l.kind}`)),
-        g.detailPage, g.award,
+        g.detailPage, linesOut(g.awards),
       ]),
   },
 

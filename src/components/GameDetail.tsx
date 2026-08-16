@@ -151,14 +151,44 @@ export function GameDetail({ game, titleId }: { game: Game; titleId?: string }) 
           <dd className="text-body">{game.team}</dd>
           <dt className="font-bold text-title">개발 도구</dt>
           <dd className="text-body">{game.tools.join(", ")}</dd>
-          {game.award ? (
-            <>
-              <dt className="font-bold text-title">성과</dt>
-              <dd className="font-bold text-orange">{game.award}</dd>
-            </>
-          ) : null}
         </dl>
+
+        <Awards items={game.awards} />
       </div>
     </div>
+  );
+}
+
+/**
+ * 수상·전시 이력. 한 줄에 이어 붙이면 여러 건일 때 읽기 어려워서
+ * 항목마다 한 줄씩 트로피와 함께 세운다.
+ */
+function Awards({ items }: { items: string[] }) {
+  if (items.length === 0) return null;
+
+  return (
+    <section className="mt-6 rounded-2xl border border-amber-200 bg-amber-50/70 p-5">
+      <h4 className="flex items-center gap-2 text-sm font-extrabold text-amber-900">
+        <Icon name="trophy" className="size-4" />
+        수상 · 전시
+        {items.length > 1 ? (
+          <span className="rounded-full bg-amber-200 px-2 py-0.5 text-xs font-extrabold text-amber-900">
+            {items.length}
+          </span>
+        ) : null}
+      </h4>
+
+      <ul className="mt-3 space-y-2">
+        {items.map((item) => (
+          <li key={item} className="flex gap-2.5 text-sm leading-relaxed break-keep-ko">
+            <span
+              aria-hidden="true"
+              className="mt-1.5 size-1.5 shrink-0 rounded-full bg-amber-500"
+            />
+            <span className="font-bold text-amber-900">{item}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

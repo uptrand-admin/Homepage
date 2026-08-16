@@ -7,6 +7,7 @@ import {
   MonitorPlay,
   Play,
   Swords,
+  Trophy,
   Users,
   X,
 } from "lucide-react";
@@ -38,6 +39,7 @@ const icons: Record<string, Glyph> = {
   "graduation-cap": GraduationCap,
   "monitor-play": MonitorPlay,
   users: Users,
+  trophy: Trophy,
   play: Play,
   download: Download,
   "external-link": ExternalLink,

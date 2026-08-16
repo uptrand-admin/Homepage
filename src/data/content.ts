@@ -26,7 +26,8 @@ export type Game = {
   links: { label: string; href: string; kind: string }[];
   /** 따로 만든 상세 소개 페이지가 있을 때만 채운다. 비어 있으면 버튼이 나오지 않는다. */
   detailPage: string;
-  award: string;
+  /** 수상·전시 이력. 여러 건일 수 있어 목록으로 둔다. */
+  awards: string[];
 };
 
 export type Album = {
