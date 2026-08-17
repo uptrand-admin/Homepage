@@ -68,7 +68,19 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url || steps.retry.outputs.page_url }}
     steps:
+      # GitHub 의 Pages 배포 API 가 가끔 503 을 돌려준다. 우리 쪽 문제가 아니고
+      # 대개 곧 풀리므로, 사람이 다시 누르지 않아도 되게 한 번 더 시도한다.
       - id: deployment
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+
+      - if: steps.deployment.outcome == 'failure'
+        run: |
+          echo "Pages 배포가 실패했습니다. 30초 뒤 한 번 더 시도합니다."
+          sleep 30
+
+      - id: retry
+        if: steps.deployment.outcome == 'failure'
         uses: actions/deploy-pages@v4
