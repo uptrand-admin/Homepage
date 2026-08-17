@@ -9,7 +9,7 @@
  * 시트에 문제가 있으면 잘못된 내용으로 배포하는 대신 여기서 실패시킨다.
  * 사이트 일부가 조용히 비어 버리는 것보다 배포가 멈추고 알려주는 편이 낫다.
  */
-import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { TABS, tablesToContent } from "./sheet-schema.mjs";
 import { loadAllTabs, readSheetId } from "./sheet-io.mjs";
@@ -89,49 +89,90 @@ function checkContent(content) {
 }
 
 /**
- * 시트가 가리키는 그림 파일이 public 안에 실제로 있는지 본다.
+ * public 아래에서 그 경로에 해당하는 진짜 파일 경로를 찾는다. 없으면 null.
  *
- * 없으면 그 자리만 조용히 비어서, 시트도 코드도 멀쩡해 보이는데 그림만 안 나온다.
- * 배포를 막을 일은 아니라서 경고만 남긴다. 대소문자만 다른 파일이 있으면 그것도 알려준다.
- * (배포되는 곳은 대소문자를 가리므로 _Title 과 _TItle 은 서로 다른 파일이다.)
+ * 한 조각씩 내려가며 실제 이름과 맞춰 본다. 정확히 같은 이름이 없으면 대소문자만
+ * 다른 것을 찾아 그 이름을 쓴다. 한글 이름은 자모를 쪼개 저장하는 운영체제가 있어
+ * 같은 글자라도 바이트가 다를 수 있으므로 NFC 로 맞춘 뒤 비교한다.
+ *
+ * existsSync 로 확인하지 않는 이유: 윈도우는 대소문자를 가리지 않아서 "Images" 도
+ * 있다고 답한다. 그러면 정작 고쳐야 할 때 그대로 통과해 버린다.
  */
-function checkImages(content) {
-  const used = [];
-  const add = (src, where) => {
-    if (src && src.startsWith("/")) used.push({ src, where });
+const key = (s) => s.normalize("NFC").toLowerCase();
+
+function realPath(src) {
+  let dir = "public";
+  const found = [];
+
+  for (const segment of src.slice(1).split("/")) {
+    let entries;
+    try {
+      entries = readdirSync(dir);
+    } catch {
+      return null;
+    }
+
+    const match = entries.includes(segment)
+      ? segment
+      : entries.find((e) => key(e) === key(segment));
+    if (!match) return null;
+
+    found.push(match);
+    dir = join(dir, match);
+  }
+
+  return "/" + found.join("/");
+}
+
+/**
+ * 시트에 적힌 그림 경로를 저장소에 있는 진짜 파일 이름에 맞춘다.
+ *
+ * 배포되는 곳은 대소문자를 가리므로 Images 와 images 는 서로 다른 폴더다.
+ * 그런데 윈도우에서는 둘이 같은 폴더라, 적는 사람도 확인하는 사람도 로컬에서는
+ * 아무 이상을 못 느낀다. 그래서 지적하는 대신 여기서 실제 이름으로 바꿔 준다.
+ *
+ * 정말로 없는 파일은 그 자리만 조용히 비므로 경고를 남긴다. 배포를 막지는 않는다.
+ * 그림 한 장 때문에 사이트 전체가 옛날 내용으로 남는 편이 더 나쁘다.
+ */
+function fixImagePaths(content) {
+  const spots = [];
+  const add = (get, set, where) => {
+    const src = get();
+    if (src && src.startsWith("/")) spots.push({ src, set, where });
   };
 
   for (const g of content.games) {
-    add(g.thumb, `게임 "${g.title}" 썸네일`);
-    for (const m of g.gallery) add(m.src, `게임 "${g.title}" 스크린샷`);
+    add(() => g.thumb, (v) => (g.thumb = v), `게임 "${g.title}" 썸네일`);
+    for (const m of g.gallery) add(() => m.src, (v) => (m.src = v), `게임 "${g.title}" 스크린샷`);
   }
   for (const a of content.albums) {
-    add(a.cover, `활동 사진 "${a.title}" 대표 이미지`);
-    for (const m of a.photos) add(m.src, `활동 사진 "${a.title}"`);
+    add(() => a.cover, (v) => (a.cover = v), `활동 사진 "${a.title}" 대표 이미지`);
+    for (const m of a.photos) add(() => m.src, (v) => (m.src = v), `활동 사진 "${a.title}"`);
   }
   for (const t of content.timeline) {
-    for (const m of t.images) add(m.src, `타임라인 "${t.title}"`);
+    for (const m of t.images) add(() => m.src, (v) => (m.src = v), `타임라인 "${t.title}"`);
   }
-  add(content.site.shareImage, "공유 이미지");
+  add(
+    () => content.site.shareImage,
+    (v) => (content.site.shareImage = v),
+    "공유 이미지",
+  );
 
-  const warnings = [];
-  for (const { src, where } of used) {
-    const full = join("public", src);
-    if (existsSync(full)) continue;
+  const fixed = [];
+  const missing = [];
 
-    /* 같은 폴더에 대소문자만 다른 파일이 있으면 그게 십중팔구 의도한 파일이다. */
-    const slash = src.lastIndexOf("/");
-    const dir = join("public", src.slice(0, slash));
-    const name = src.slice(slash + 1);
-    let hint = "";
-    if (existsSync(dir)) {
-      const match = readdirSync(dir).find((f) => f.toLowerCase() === name.toLowerCase());
-      if (match) hint = ` — 대소문자만 다른 "${match}" 이(가) 있습니다.`;
+  for (const { src, set, where } of spots) {
+    const real = realPath(src);
+    if (real === src) continue;
+    if (real === null) {
+      missing.push(`${where}: "${src}" 파일이 저장소에 없습니다.`);
+      continue;
     }
-
-    warnings.push(`${where}: "${src}" 파일이 없습니다.${hint}`);
+    set(real);
+    fixed.push(`${where}: "${src}" → "${real}"`);
   }
-  return warnings;
+
+  return { fixed, missing };
 }
 
 console.log(`[content] 시트 ${SHEET_ID} 에서 내용을 읽습니다.`);
@@ -167,12 +208,16 @@ if (contentProblems.length) {
   stop("시트 내용에 문제가 있습니다:\n" + contentProblems.map((p) => "  · " + p).join("\n"));
 }
 
-const imageWarnings = checkImages(content);
-if (imageWarnings.length) {
-  console.warn("\n[content] ⚠ 없는 그림 파일을 가리키는 칸이 있습니다. 그 자리는 빈 채로 배포됩니다.");
-  for (const w of imageWarnings) console.warn(`[content]   · ${w}`);
-  console.warn("");
+const { fixed, missing } = fixImagePaths(content);
+if (fixed.length) {
+  console.log("\n[content] 그림 경로를 저장소의 실제 파일 이름에 맞췄습니다.");
+  for (const f of fixed) console.log(`[content]   · ${f}`);
 }
+if (missing.length) {
+  console.warn("\n[content] ⚠ 없는 그림 파일을 가리키는 칸이 있습니다. 그 자리는 빈 채로 배포됩니다.");
+  for (const m of missing) console.warn(`[content]   · ${m}`);
+}
+if (fixed.length || missing.length) console.log("");
 
 const before = readFileSync(SOURCE, "utf8");
 const after = JSON.stringify(content, null, 2) + "\n";
