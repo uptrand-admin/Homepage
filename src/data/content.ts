@@ -63,15 +63,47 @@ export type Activity = {
   body: string;
 };
 
+/**
+ * "2025.03 ~ 2025.10" 처럼 적힌 기간에서 가장 나중 시점을 뽑아 비교용 숫자로 만든다.
+ *
+ * 시트에 적는 형식이 사람마다 조금씩 달라서(점, 하이픈, "년 월") 날짜처럼 보이는 것을
+ * 모두 찾아 그중 가장 나중 것을 쓴다. 하나도 못 읽으면 0 이 되어 뒤로 밀린다.
+ */
+function latestPoint(period: string): number {
+  let best = 0;
+
+  for (const m of String(period ?? "").matchAll(/(\d{4})\s*[.\-/년]?\s*(\d{1,2})?/g)) {
+    const year = Number(m[1]);
+    if (year < 1900 || year > 2999) continue;
+
+    const month = Math.min(12, Math.max(1, Number(m[2] ?? 1) || 1));
+    best = Math.max(best, year * 12 + month);
+  }
+
+  return best;
+}
+
+/**
+ * 최신순으로 세운다. 같은 시점이면 시트에 적은 순서를 지킨다(정렬이 안정적이므로).
+ * 덕분에 같은 달에 끝난 것들끼리는 시트에서 위아래를 바꿔 직접 조정할 수 있다.
+ */
+function newestFirst<T>(items: T[], getPeriod: (item: T) => string): T[] {
+  return items.slice().sort((a, b) => latestPoint(getPeriod(b)) - latestPoint(getPeriod(a)));
+}
+
 export const site = raw.site;
 export const nav = raw.nav;
 export const contact = raw.contact;
 export const socials = raw.socials;
 export const about = raw.about;
 export const activities = raw.about.activities as Activity[];
-export const games = raw.games as Game[];
-export const albums = raw.albums as Album[];
-export const timeline = raw.timeline as TimelineEntry[];
+export const games = newestFirst(raw.games as Game[], (g) => g.period);
+export const albums = newestFirst(raw.albums as Album[], (a) => a.dateRange);
+/* 목록에 찍히는 값이 date 이므로 그 값으로 세운다. 기간으로 세우면 보이는 순서가 뒤죽박죽이 된다. */
+export const timeline = newestFirst(
+  raw.timeline as TimelineEntry[],
+  (t) => t.date || t.dateRange,
+);
 export const benefits = raw.benefits;
 export const join = raw.join;
 
