@@ -9,7 +9,8 @@
  * 시트에 문제가 있으면 잘못된 내용으로 배포하는 대신 여기서 실패시킨다.
  * 사이트 일부가 조용히 비어 버리는 것보다 배포가 멈추고 알려주는 편이 낫다.
  */
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { TABS, tablesToContent } from "./sheet-schema.mjs";
 import { loadAllTabs, readSheetId } from "./sheet-io.mjs";
 
@@ -87,6 +88,52 @@ function checkContent(content) {
   return problems;
 }
 
+/**
+ * 시트가 가리키는 그림 파일이 public 안에 실제로 있는지 본다.
+ *
+ * 없으면 그 자리만 조용히 비어서, 시트도 코드도 멀쩡해 보이는데 그림만 안 나온다.
+ * 배포를 막을 일은 아니라서 경고만 남긴다. 대소문자만 다른 파일이 있으면 그것도 알려준다.
+ * (배포되는 곳은 대소문자를 가리므로 _Title 과 _TItle 은 서로 다른 파일이다.)
+ */
+function checkImages(content) {
+  const used = [];
+  const add = (src, where) => {
+    if (src && src.startsWith("/")) used.push({ src, where });
+  };
+
+  for (const g of content.games) {
+    add(g.thumb, `게임 "${g.title}" 썸네일`);
+    for (const m of g.gallery) add(m.src, `게임 "${g.title}" 스크린샷`);
+  }
+  for (const a of content.albums) {
+    add(a.cover, `활동 사진 "${a.title}" 대표 이미지`);
+    for (const m of a.photos) add(m.src, `활동 사진 "${a.title}"`);
+  }
+  for (const t of content.timeline) {
+    for (const m of t.images) add(m.src, `타임라인 "${t.title}"`);
+  }
+  add(content.site.shareImage, "공유 이미지");
+
+  const warnings = [];
+  for (const { src, where } of used) {
+    const full = join("public", src);
+    if (existsSync(full)) continue;
+
+    /* 같은 폴더에 대소문자만 다른 파일이 있으면 그게 십중팔구 의도한 파일이다. */
+    const slash = src.lastIndexOf("/");
+    const dir = join("public", src.slice(0, slash));
+    const name = src.slice(slash + 1);
+    let hint = "";
+    if (existsSync(dir)) {
+      const match = readdirSync(dir).find((f) => f.toLowerCase() === name.toLowerCase());
+      if (match) hint = ` — 대소문자만 다른 "${match}" 이(가) 있습니다.`;
+    }
+
+    warnings.push(`${where}: "${src}" 파일이 없습니다.${hint}`);
+  }
+  return warnings;
+}
+
 console.log(`[content] 시트 ${SHEET_ID} 에서 내용을 읽습니다.`);
 
 /* 한 탭이 잘못돼도 멈추지 않고 전부 본다. 고치고 다시 돌리기를 반복하지 않도록. */
@@ -118,6 +165,13 @@ const content = tablesToContent(tables, base);
 const contentProblems = checkContent(content);
 if (contentProblems.length) {
   stop("시트 내용에 문제가 있습니다:\n" + contentProblems.map((p) => "  · " + p).join("\n"));
+}
+
+const imageWarnings = checkImages(content);
+if (imageWarnings.length) {
+  console.warn("\n[content] ⚠ 없는 그림 파일을 가리키는 칸이 있습니다. 그 자리는 빈 채로 배포됩니다.");
+  for (const w of imageWarnings) console.warn(`[content]   · ${w}`);
+  console.warn("");
 }
 
 const before = readFileSync(SOURCE, "utf8");

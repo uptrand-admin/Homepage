@@ -91,14 +91,42 @@ const nullable = (v) => (text(v) === "" ? null : text(v));
 const STATUS_TO_KO = { released: "완료", dev: "개발 중" };
 const STATUS_FROM_KO = Object.fromEntries(Object.entries(STATUS_TO_KO).map(([k, v]) => [v, k]));
 
-/** "설명 | 경로" 한 줄 목록 <-> [{src, caption}] */
+const IMAGE_EXT = /\.(png|jpe?g|gif|webp|avif|svg)$/i;
+const looksLikePath = (s) => IMAGE_EXT.test(s) || s.startsWith("/") || /^https?:\/\//.test(s);
+
+/**
+ * public 폴더 안의 파일은 / 로 시작해야 배포 경로가 제대로 붙는다.
+ * 시트에 "images/..." 처럼 앞의 / 를 빼고 적기 쉬워서 여기서 채워 준다.
+ */
+const assetPath = (v) => {
+  const s = text(v);
+  if (!s) return null;
+  if (/^https?:\/\//.test(s) || s.startsWith("/")) return s;
+  return "/" + s.replace(/^\.?\/*/, "");
+};
+
+/**
+ * "설명 | 경로" 한 줄 목록 <-> [{src, caption}]
+ *
+ * 원칙은 설명이 먼저지만 "경로 | 설명" 으로 적기가 훨씬 자연스러워서 실제로 자주 뒤집힌다.
+ * 그래서 순서를 강요하는 대신, 경로처럼 생긴 쪽(확장자나 / 가 있는 쪽)을 경로로 본다.
+ */
 const mediaIn = (v) =>
   lines(v).map((line) => {
-    const [caption, src] = parts(line, 2);
-    return { src: src === "" ? null : src, caption };
+    const [first, second] = parts(line, 2);
+
+    const flipped = looksLikePath(first) && !looksLikePath(second);
+    const caption = flipped ? second : first;
+    const src = flipped ? first : second;
+
+    return { src: assetPath(src), caption };
   });
 const mediaOut = (arr) =>
-  linesOut((arr ?? []).map((m) => `${m.caption} | ${m.src ?? ""}`.trim()));
+  linesOut(
+    (arr ?? []).map((m) =>
+      m.caption ? `${m.caption} | ${m.src ?? ""}`.trim() : text(m.src),
+    ),
+  );
 
 /* ---------- 탭 정의 ---------- */
 
@@ -214,7 +242,7 @@ export const TABS = [
         tagline: r[2],
         status: STATUS_FROM_KO[text(r[3])] ?? "released",
         tags: csvList(r[4]),
-        thumb: nullable(r[5]),
+        thumb: assetPath(r[5]),
         video: text(r[6]),
         gallery: mediaIn(r[7]),
         period: text(r[8]),
@@ -247,7 +275,7 @@ export const TABS = [
     read: (rows, draft) => {
       draft.albums = rows.map((r) => ({
         slug: text(r[0]), title: r[1], category: text(r[2]), summary: r[3],
-        dateRange: text(r[4]), cover: nullable(r[5]), photos: mediaIn(r[6]),
+        dateRange: text(r[4]), cover: assetPath(r[5]), photos: mediaIn(r[6]),
       }));
     },
     write: (content) =>
