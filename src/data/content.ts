@@ -95,9 +95,25 @@ export const site = raw.site;
 export const nav = raw.nav;
 export const contact = raw.contact;
 export const socials = raw.socials;
-export const about = raw.about;
 export const activities = raw.about.activities as Activity[];
 export const games = newestFirst(raw.games as Game[], (g) => g.period);
+
+/**
+ * 소개 섹션의 숫자 칸에 {게임 수} 라고 적으면 게임 탭에 적힌 개수로 바뀐다.
+ *
+ * 게임을 하나 추가할 때마다 다른 칸의 숫자까지 같이 고쳐야 하면 언젠가는 어긋난다.
+ * 그렇다고 두 번째 칸을 무조건 개수로 정해 버리면 나중에 다른 숫자를 넣고 싶을 때
+ * 시트를 고쳐도 반응하지 않아 더 헷갈리므로, 원하는 칸에 표시해 쓰게 했다.
+ */
+const COUNT = /\{\s*(?:게임|프로젝트)\s*수\s*\}/g;
+
+export const about = {
+  ...raw.about,
+  stats: raw.about.stats.map((stat) => ({
+    ...stat,
+    value: stat.value.replace(COUNT, String(games.length)),
+  })),
+};
 export const albums = newestFirst(raw.albums as Album[], (a) => a.dateRange);
 /* 목록에 찍히는 값이 date 이므로 그 값으로 세운다. 기간으로 세우면 보이는 순서가 뒤죽박죽이 된다. */
 export const timeline = newestFirst(
