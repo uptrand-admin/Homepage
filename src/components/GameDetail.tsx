@@ -6,6 +6,7 @@ import { Icon } from "@/components/Icon";
 import { Placeholder } from "@/components/ui";
 import { statusLabels, type Game } from "@/data/content";
 import { asset } from "@/lib/asset";
+import { youtubeThumb } from "@/lib/youtube";
 
 /**
  * 게임 상세 본문. 모달과 /games/[slug] 전용 페이지가 이 컴포넌트를 함께 쓴다.
@@ -19,6 +20,9 @@ export function GameDetail({ game, titleId }: { game: Game; titleId?: string }) 
   ];
   const [current, setCurrent] = useState(0);
   const active = slides[current];
+
+  /* 영상 타일에 걸 그림. 유튜브가 아니면 게임 썸네일로 대신한다. */
+  const videoThumb = game.video ? (youtubeThumb(game.video) ?? asset(game.thumb)) : null;
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1.15fr_1fr] lg:gap-10">
@@ -64,6 +68,10 @@ export function GameDetail({ game, titleId }: { game: Game; titleId?: string }) 
               >
                 {slide.kind === "image" && slide.src ? (
                   <Image src={asset(slide.src)} alt="" fill sizes="96px" className="object-cover" />
+                ) : slide.kind === "video" && videoThumb ? (
+                  /* 유튜브가 주는 그림이라 <Image> 대신 그대로 건다. 최적화할 것도 없다. */
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={videoThumb} alt="" className="absolute inset-0 size-full object-cover" />
                 ) : (
                   <Placeholder seed={`${game.slug}-${i}`} className="size-full" />
                 )}

@@ -86,7 +86,6 @@ const parts = (line, count) => {
 };
 
 const text = (v) => String(v ?? "").trim();
-const nullable = (v) => (text(v) === "" ? null : text(v));
 
 const STATUS_TO_KO = { released: "완료", dev: "개발 중" };
 const STATUS_FROM_KO = Object.fromEntries(Object.entries(STATUS_TO_KO).map(([k, v]) => [v, k]));
