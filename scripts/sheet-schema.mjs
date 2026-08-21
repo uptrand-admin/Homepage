@@ -105,6 +105,20 @@ const assetPath = (v) => {
 };
 
 /**
+ * 유튜브 주소를 <iframe> 에 걸 수 있는 embed 형태로 바꾼다.
+ *
+ * 공유 버튼이 주는 youtu.be/... 나 주소창의 watch?v=... 를 그대로 걸면 유튜브가
+ * 표시를 거부해(X-Frame-Options) 재생기 자리가 빈 채로 남는다. 어느 쪽을 붙여
+ * 넣어도 되게 ID 만 뽑아 다시 조립한다. 뒤에 붙는 si=, t= 같은 값은 공유 흔적이라 버린다.
+ */
+const YOUTUBE_ID = /(?:youtube(?:-nocookie)?\.com\/(?:embed\/|watch\?v=|v\/)|youtu\.be\/)([\w-]{11})/;
+const embedUrl = (v) => {
+  const s = text(v);
+  const match = YOUTUBE_ID.exec(s);
+  return match ? `https://www.youtube.com/embed/${match[1]}` : s;
+};
+
+/**
  * "설명 | 경로" 한 줄 목록 <-> [{src, caption}]
  *
  * 원칙은 설명이 먼저지만 "경로 | 설명" 으로 적기가 훨씬 자연스러워서 실제로 자주 뒤집힌다.
@@ -242,7 +256,7 @@ export const TABS = [
         status: STATUS_FROM_KO[text(r[3])] ?? "released",
         tags: csvList(r[4]),
         thumb: assetPath(r[5]),
-        video: text(r[6]),
+        video: embedUrl(r[6]),
         gallery: mediaIn(r[7]),
         period: text(r[8]),
         team: text(r[9]),
