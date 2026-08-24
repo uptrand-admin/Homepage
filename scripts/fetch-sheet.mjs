@@ -62,17 +62,6 @@ function checkContent(content) {
 
   if (content.games.length === 0) problems.push("게임이 한 개도 없습니다.");
 
-  /* 타임라인의 수상작이 실제 게임을 가리키는지 확인한다. 잘못 적으면 링크가 404 가 된다. */
-  const gameSlugs = new Set(content.games.map((g) => g.slug));
-  for (const entry of content.timeline) {
-    for (const award of entry.awards) {
-      if (award.gameSlug && !gameSlugs.has(award.gameSlug))
-        problems.push(
-          `타임라인 "${entry.title}"의 수상작 "${award.work}"이 없는 게임 주소이름 "${award.gameSlug}"을 가리킵니다.`,
-        );
-    }
-  }
-
   /* 아이콘 이름을 잘못 적으면 그 자리만 조용히 비어 버리므로 미리 잡는다. */
   const socialIcons = new Set(["instagram", "github", "youtube", "discord", "steam", "itch"]);
   for (const s of content.socials) {
@@ -86,6 +75,30 @@ function checkContent(content) {
   }
 
   return problems;
+}
+
+/**
+ * 타임라인의 수상작이 없는 게임을 가리키면 링크만 떼어 낸다.
+ *
+ * 게임 탭에서 한 줄을 지우면 타임라인에 적어 둔 주소이름이 남아 404 로 가는 링크가 된다.
+ * 그렇다고 배포를 막으면 아무 상관 없는 나머지까지 전부 옛날 내용으로 남는다.
+ * 수상 사실과 작품 이름은 그대로 보이고 "게임 보기" 버튼만 사라진다.
+ */
+function dropDeadGameLinks(content) {
+  const slugs = new Set(content.games.map((g) => g.slug));
+  const dropped = [];
+
+  for (const entry of content.timeline) {
+    for (const award of entry.awards) {
+      if (!award.gameSlug || slugs.has(award.gameSlug)) continue;
+      dropped.push(
+        `타임라인 "${entry.title}"의 수상작 "${award.work}": 게임 "${award.gameSlug}" 이(가) 게임 탭에 없어 링크를 뺐습니다.`,
+      );
+      award.gameSlug = "";
+    }
+  }
+
+  return dropped;
 }
 
 /**
@@ -208,6 +221,12 @@ if (contentProblems.length) {
   stop("시트 내용에 문제가 있습니다:\n" + contentProblems.map((p) => "  · " + p).join("\n"));
 }
 
+const deadLinks = dropDeadGameLinks(content);
+if (deadLinks.length) {
+  console.warn("\n[content] ⚠ 없는 게임을 가리키는 수상작이 있습니다.");
+  for (const d of deadLinks) console.warn(`[content]   · ${d}`);
+}
+
 const { fixed, missing } = fixImagePaths(content);
 if (fixed.length) {
   console.log("\n[content] 그림 경로를 저장소의 실제 파일 이름에 맞췄습니다.");
@@ -217,7 +236,7 @@ if (missing.length) {
   console.warn("\n[content] ⚠ 없는 그림 파일을 가리키는 칸이 있습니다. 그 자리는 빈 채로 배포됩니다.");
   for (const m of missing) console.warn(`[content]   · ${m}`);
 }
-if (fixed.length || missing.length) console.log("");
+if (fixed.length || missing.length || deadLinks.length) console.log("");
 
 const before = readFileSync(SOURCE, "utf8");
 const after = JSON.stringify(content, null, 2) + "\n";

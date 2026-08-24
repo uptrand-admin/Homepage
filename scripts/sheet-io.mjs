@@ -91,9 +91,31 @@ export function inspectTab(tab, table) {
 
     if (table.length === 1) error("내용이 한 줄도 없습니다. 머리글만 있습니다.");
 
-    // 머리글보다 칸이 많은 줄은 쉼표가 섞여 열이 밀린 경우다.
-    const wide = table.slice(1).filter((r) => r.length > tab.header.length).length;
-    if (wide) error(`칸 수가 머리글보다 많은 줄이 ${wide}개 있습니다.`);
+    /*
+     * 머리글 뒤쪽에 값이 남아 있으면 쉼표가 섞여 열이 통째로 밀린 것이다.
+     *
+     * 칸 수만 세면 안 된다. 시트 격자는 기본 26열이라 아무것도 안 적은 뒤쪽 열까지
+     * 딸려 오는데, 그것까지 밀린 것으로 보면 멀쩡한 시트가 배포를 막는다.
+     * 실제로 값이 들어 있는 칸만 센다.
+     */
+    const spilled = table
+      .slice(1)
+      .map((row, i) => ({
+        line: i + 2, // 시트에서 보이는 줄 번호. 1번째 줄이 머리글이다.
+        name: String(row[1] ?? row[0] ?? "").slice(0, 20),
+        extra: row.slice(tab.header.length).filter((c) => String(c).trim() !== ""),
+      }))
+      .filter((r) => r.extra.length > 0);
+
+    if (spilled.length) {
+      error(`${tab.header.length}번째 열보다 뒤에 값이 있는 줄이 ${spilled.length}개 있습니다.`);
+      // 몇 개인지만 알려 주면 어디를 볼지 알 수 없으므로 실제 값을 함께 보인다.
+      for (const r of spilled.slice(0, 3)) {
+        const shown = r.extra.map((c) => `"${String(c).slice(0, 30)}"`).join(", ");
+        error(`  ${r.line}번째 줄 (${r.name}): ${shown}`);
+      }
+      if (spilled.length > 3) error(`  … 그 밖에 ${spilled.length - 3}개 줄`);
+    }
   } else {
     /*
      * 항목 하나가 없다고 배포를 막지는 않는다.
