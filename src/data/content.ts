@@ -114,7 +114,16 @@ export const about = {
     value: stat.value.replace(COUNT, String(games.length)),
   })),
 };
-export const albums = newestFirst(raw.albums as Album[], (a) => a.dateRange);
+/*
+ * 앨범 카드의 대표 사진. 시트의 "대표 사진" 칸을 비워 두는 일이 잦은데, 그러면
+ * 사진이 여러 장 있어도 카드가 회색으로 남는다. 비어 있으면 첫 사진을 대신 쓴다.
+ */
+export const albums = newestFirst(raw.albums as Album[], (a) => a.dateRange).map(
+  (album) => ({
+    ...album,
+    cover: album.cover ?? album.photos.find((p) => p.src)?.src ?? null,
+  }),
+);
 /* 목록에 찍히는 값이 date 이므로 그 값으로 세운다. 기간으로 세우면 보이는 순서가 뒤죽박죽이 된다. */
 export const timeline = newestFirst(
   raw.timeline as TimelineEntry[],
