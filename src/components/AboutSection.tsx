@@ -62,7 +62,8 @@ function Story() {
       </Reveal>
 
       <Reveal delay={120}>
-        <div className="flex h-full flex-col rounded-3xl border border-line bg-white p-4 shadow-lift">
+        {/* 옆 칸 높이에 맞춰 늘어난다. 남는 공간을 아래로만 몰지 않도록 세로 가운데로 둔다. */}
+        <div className="flex h-full flex-col justify-center rounded-3xl border border-line bg-white p-4 shadow-lift">
           <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-subtle">
             {about.video ? (
               <iframe
@@ -80,9 +81,12 @@ function Story() {
               </div>
             )}
           </div>
-          <p className="mt-4 text-center font-display font-bold text-body">
-            {about.videoCaption}
-          </p>
+          {/* 설명이 없으면 칸을 아예 두지 않는다. 빈 문단이 남으면 아래만 두꺼워 보인다. */}
+          {about.videoCaption ? (
+            <p className="mt-4 text-center font-display font-bold text-body">
+              {about.videoCaption}
+            </p>
+          ) : null}
         </div>
       </Reveal>
     </div>

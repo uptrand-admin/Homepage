@@ -99,19 +99,23 @@ export const activities = raw.about.activities as Activity[];
 export const games = newestFirst(raw.games as Game[], (g) => g.period);
 
 /**
- * 소개 섹션의 숫자 칸에 {게임 수} 라고 적으면 게임 탭에 적힌 개수로 바뀐다.
+ * 소개 섹션 숫자 칸을 게임 탭의 프로젝트 수와 자동으로 맞춘다.
  *
- * 게임을 하나 추가할 때마다 다른 칸의 숫자까지 같이 고쳐야 하면 언젠가는 어긋난다.
- * 그렇다고 두 번째 칸을 무조건 개수로 정해 버리면 나중에 다른 숫자를 넣고 싶을 때
- * 시트를 고쳐도 반응하지 않아 더 헷갈리므로, 원하는 칸에 표시해 쓰게 했다.
+ * 두 가지로 동작한다.
+ *   - 칸 이름이 "프로젝트 수"·"게임 수" 이면 값이 무엇이든 게임 개수로 채운다.
+ *     게임을 추가할 때 이 숫자를 따로 고칠 필요가 없다.
+ *   - 그 밖의 칸이라도 값에 {게임 수} 라고 적으면 그 자리에 개수가 들어간다.
  */
-const COUNT = /\{\s*(?:게임|프로젝트)\s*수\s*\}/g;
+const COUNT_TOKEN = /\{\s*(?:게임|프로젝트)\s*수\s*\}/g;
+const COUNT_LABEL = /(게임|프로젝트)\s*수/;
 
 export const about = {
   ...raw.about,
   stats: raw.about.stats.map((stat) => ({
     ...stat,
-    value: stat.value.replace(COUNT, String(games.length)),
+    value: COUNT_LABEL.test(stat.label)
+      ? String(games.length)
+      : stat.value.replace(COUNT_TOKEN, String(games.length)),
   })),
 };
 /*

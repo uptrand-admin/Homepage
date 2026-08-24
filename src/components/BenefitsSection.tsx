@@ -4,12 +4,26 @@ import { Icon } from "@/components/Icon";
 import { Reveal, Section, SectionTitle } from "@/components/ui";
 import { benefits, contact, join } from "@/data/content";
 
+/*
+ * 항목 수에 맞춰 열을 정한다. 4개 기준으로 고정하면 3개일 때 오른쪽이 비어 왼쪽으로 쏠린다.
+ * 클래스 문자열을 그대로 적어 둬야 Tailwind 가 미리 찾아 만들어 둔다(문자열을 이어 붙이면 못 찾는다).
+ * 열 수가 꽉 차지 않아도 가운데로 오도록 폭을 제한하고 mx-auto 로 세운다.
+ */
+const COLUMNS: Record<number, string> = {
+  1: "lg:max-w-[360px] lg:grid-cols-1",
+  2: "lg:max-w-[760px] lg:grid-cols-2",
+  3: "lg:max-w-[1120px] lg:grid-cols-3",
+  4: "lg:grid-cols-4",
+};
+
 export function BenefitsSection() {
+  const columns = COLUMNS[Math.min(benefits.length, 4)] ?? COLUMNS[4];
+
   return (
     <Section id="benefits">
       <SectionTitle lead="UPTRAND" accent="BENEFITS" />
 
-      <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+      <div className={`mx-auto grid gap-8 sm:grid-cols-2 ${columns}`}>
         {benefits.map((item, i) => (
           <Reveal key={item.title} delay={i * 100}>
             <div className="h-full rounded-2xl border border-line bg-white px-8 py-10 text-center shadow-card transition-all hover:-translate-y-2 hover:border-blue hover:shadow-hover">
