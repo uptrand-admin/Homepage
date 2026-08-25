@@ -119,10 +119,13 @@ export const about = {
   })),
 };
 /*
- * 앨범 카드의 대표 사진. 시트의 "대표 사진" 칸을 비워 두는 일이 잦은데, 그러면
- * 사진이 여러 장 있어도 카드가 회색으로 남는다. 비어 있으면 첫 사진을 대신 쓴다.
+ * 활동 사진도 최신순으로 세운다. 기간 칸을 비워 두는 일이 잦은데, 그러면 날짜가 없어
+ * 정렬이 안 되므로 제목에 적힌 연도("Build 051 2026" 등)를 대신 본다. 둘 다 없으면 맨 뒤로.
+ *
+ * 대표 사진도 함께 채운다. "대표 사진" 칸을 비우면 사진이 여러 장 있어도 카드가
+ * 회색으로 남으므로, 비어 있으면 첫 사진을 대표로 쓴다.
  */
-export const albums = newestFirst(raw.albums as Album[], (a) => a.dateRange).map(
+export const albums = newestFirst(raw.albums as Album[], (a) => a.dateRange || a.title).map(
   (album) => ({
     ...album,
     cover: album.cover ?? album.photos.find((p) => p.src)?.src ?? null,

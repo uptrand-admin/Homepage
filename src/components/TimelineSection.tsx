@@ -141,7 +141,12 @@ function TimelineDetail({ entry, onClose }: { entry: TimelineEntry; onClose: () 
                 key={`${award.prize}-${award.work}`}
                 className="flex items-center gap-4 border-b border-line py-3.5"
               >
-                <span className="w-20 shrink-0 rounded-md bg-amber-100 px-2 py-1 text-center text-xs font-extrabold text-amber-800">
+                {/*
+                 * 폭을 80px 로 못박으면 "Best Experimental Game 상" 같은 긴 상 이름이
+                 * 박스를 삐져나온다. 짧은 상들은 80px 로 나란히 두되(min-w), 긴 것은
+                 * 내용만큼 늘리고, 그래도 넘치면 단어를 끊어 박스 안에 가둔다.
+                 */}
+                <span className="min-w-20 max-w-[45%] shrink-0 rounded-md bg-amber-100 px-2 py-1 text-center text-xs leading-snug font-extrabold text-amber-800 break-keep-ko [overflow-wrap:anywhere]">
                   {award.prize}
                 </span>
                 <span className="flex-1 font-bold text-title break-keep-ko">{award.work}</span>
