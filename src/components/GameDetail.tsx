@@ -25,8 +25,10 @@ export function GameDetail({ game, titleId }: { game: Game; titleId?: string }) 
   const videoThumb = game.video ? (youtubeThumb(game.video) ?? asset(game.thumb)) : null;
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1.15fr_1fr] lg:gap-10">
-      <div>
+    // minmax(0,…) 로 둬야 두 칸이 비율(1.15:1)대로 나뉜다. 그냥 1fr 이면 min-content 가
+    // auto 라, 아래 썸네일 줄(고정 폭 여러 개)이 왼쪽 칸을 넓혀 텍스트가 한 글자씩 줄바꿈됐다.
+    <div className="grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-10">
+      <div className="min-w-0">
         <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-line bg-subtle">
           {active?.kind === "video" && game.video ? (
             <iframe
@@ -54,7 +56,8 @@ export function GameDetail({ game, titleId }: { game: Game; titleId?: string }) 
         </div>
 
         {slides.length > 1 ? (
-          <div className="mt-3 flex gap-3">
+          /* 개수가 많으면 칸을 넓히지 말고 가로로 스크롤한다. */
+          <div className="mt-3 flex gap-3 overflow-x-auto pb-1">
             {slides.map((slide, i) => (
               <button
                 key={`${slide.kind}-${i}`}
@@ -118,7 +121,7 @@ export function GameDetail({ game, titleId }: { game: Game; titleId?: string }) 
         ) : null}
       </div>
 
-      <div>
+      <div className="min-w-0">
         <div className="mb-2 flex flex-wrap gap-2">
           <span
             className={`rounded-md px-2.5 py-1 text-xs font-extrabold text-white ${
