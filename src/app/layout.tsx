@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Montserrat } from "next/font/google";
 import localFont from "next/font/local";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -18,11 +17,16 @@ const pretendard = localFont({
   display: "swap",
 });
 
-/** 영문 제목용. 굵고 각진 인상을 준다. */
-const montserrat = Montserrat({
+/**
+ * 영문 제목용. 굵고 각진 인상을 준다.
+ * 빌드 때 구글에서 받아오던 것을, Pretendard 처럼 저장소에 넣어 직접 서빙한다.
+ * CI 가 fonts.gstatic.com 에 닿지 못하면 빌드가 통째로 실패해서(Turbopack 폰트 오류),
+ * 외부 의존을 없앴다. latin 가변 폰트 한 파일로 600~900 굵기를 모두 쓴다.
+ */
+const montserrat = localFont({
+  src: "./fonts/Montserrat-latin.woff2",
   variable: "--font-montserrat",
-  subsets: ["latin"],
-  weight: ["600", "700", "800", "900"],
+  weight: "100 900",
   display: "swap",
 });
 
